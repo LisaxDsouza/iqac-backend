@@ -12,7 +12,10 @@ const app = express();
 
 // ✅ CORS config
 app.use(cors({
-  origin: "http://localhost:3001",  // allow your React app
+  origin:[
+  "http://localhost:3001",
+  "https://iqac-frontend-production.up.railway.app/"  // allow your React app
+  ],
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
