@@ -4,7 +4,6 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const path = require("path");
 
-/* ----------------- Routes ----------------- */
 const coordinatorRoutes = require("./routes/coordinator");
 const authRoutes = require("./routes/auth");
 const facultyRoutes = require("./routes/faculty");
@@ -15,8 +14,8 @@ const app = express();
 /* ----------------- CORS ----------------- */
 app.use(cors({
   origin: [
-    "http://localhost:3000", // React dev server
-    "http://localhost:3001", // alternate dev port
+    "http://localhost:3000",   // local React dev
+    "http://localhost:3001",   // alternate local port
     "https://iqac-frontend-production.up.railway.app" // 🚀 deployed frontend
   ],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -24,8 +23,8 @@ app.use(cors({
   credentials: true
 }));
 
-// Handle preflight requests for all routes
-app.options("*", cors());
+// ✅ Express v5 safe way for preflight requests
+app.options(/.*/, cors());
 
 /* ----------------- Middleware ----------------- */
 app.use(express.json());
@@ -37,13 +36,15 @@ app.use("/api/faculty", facultyRoutes);
 app.use("/api/coordinator", coordinatorRoutes);
 app.use("/api/admin", adminRoutes);
 
-/* ----------------- Serve React build (only if fullstack in same service) ----------------- */
+/* ----------------- Serve React build (optional) ----------------- */
+// 👉 Only if frontend + backend are in one service.
+// If frontend is on its own Railway/Vercel, you can remove this.
 if (process.env.NODE_ENV === "production") {
   const clientBuildPath = path.join(__dirname, "client", "build");
   app.use(express.static(clientBuildPath));
 
-  // ✅ Fix for Express v5: use `(.*)` instead of `"*"`
-  app.get(/^(?!\/api).*/, (req, res) => {
+  // Catch-all → React index.html
+  app.get("/*", (req, res) => {
     res.sendFile(path.join(clientBuildPath, "index.html"));
   });
 }
