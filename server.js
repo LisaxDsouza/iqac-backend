@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const path = require("path");
 
+// Routes
 const coordinatorRoutes = require("./routes/coordinator");
 const authRoutes = require("./routes/auth");
 const facultyRoutes = require("./routes/faculty");
@@ -12,19 +13,18 @@ const adminRoutes = require("./routes/admin");
 const app = express();
 
 /* ----------------- CORS ----------------- */
-app.use(cors({
-  origin: [
-    "http://localhost:3000",
-    "http://localhost:3001",
-    "https://iqac-frontend-production.up.railway.app"
-  ],
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true
-}));
-
-// ✅ Handle preflight requests globally
-app.options("*", cors());
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000", // React dev server
+      "http://localhost:3001", // alt dev port
+      "https://iqac-frontend-production.up.railway.app", // 🚀 deployed frontend
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  })
+);
 
 /* ----------------- Middleware ----------------- */
 app.use(express.json());
@@ -36,13 +36,14 @@ app.use("/api/faculty", facultyRoutes);
 app.use("/api/coordinator", coordinatorRoutes);
 app.use("/api/admin", adminRoutes);
 
-/* ----------------- Serve React build (optional) ----------------- */
+/* ----------------- Serve React build (production) ----------------- */
+// 👉 only used if you deploy frontend + backend together on Railway
 if (process.env.NODE_ENV === "production") {
   const clientBuildPath = path.join(__dirname, "client", "build");
   app.use(express.static(clientBuildPath));
 
-  // ✅ FIX for Express v5: catch-all route
-  app.get("*", (req, res) => {
+  // ✅ Express v5-safe catch-all using regex
+  app.get(/.*/, (req, res) => {
     res.sendFile(path.join(clientBuildPath, "index.html"));
   });
 }
